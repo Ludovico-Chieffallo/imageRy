@@ -14,7 +14,7 @@ Original code by Duccio Rocchini, Giovanni Nocera, Ludovico Chieffallo, and Elis
 
 library(terra)
 
-mato <- system.file("data/matogrosso_ast_2006209_lrg.jpg", package="imageRy")
+mato <- system.file("images/matogrosso_ast_2006209_lrg.jpg", package="imageRy")
 
 mato <- rast(mato)
 
