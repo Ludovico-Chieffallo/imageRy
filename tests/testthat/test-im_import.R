@@ -15,7 +15,7 @@ test_that("im.import correctly loads a raster", {
 
   # Pick the first available image (if any)
   if (length(available_images) > 0) {
-    test_image <- available_images[1]
+    test_image <- available_images[3]
 
     # Try to import the image
     imported_raster <- im.import(test_image)
