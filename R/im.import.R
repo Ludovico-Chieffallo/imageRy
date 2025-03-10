@@ -33,24 +33,60 @@
 #' @importFrom terra rast nlyr plotRGB
 #' @export
 im.import <- function(im) {
+  # Get the correct directory path for images
+  image_dir <- system.file("images", package = "imageRy")
+
+  # If the package is being tested locally, use a direct path
+  if (image_dir == "") {
+    image_dir <- "C:/Users/ludov/imageRy/images"  # Update this path as needed
+  }
+
+  # List available image files
+  files_list <- list.files(image_dir)
+
+  # Find an exact match for the file name
+  fname <- files_list[files_list == im]
+
+  # Check if exactly one file was found
+  if (length(fname) == 0) {
+    stop("No matching file found for: ", im)
+  } else if (length(fname) > 1) {
+    stop("Multiple matches found for: ", im, " - Please specify the exact filename.")
+  }
+
+  # Construct the full file path
+  fpath <- file.path(image_dir, fname)
+
+  # Load the raster image with suppressed warnings
+  r <- suppressWarnings(tryCatch({
+    terra::rast(fpath)
+  }, error = function(e) {
+    stop("Failed to load raster: ", im, " - Error: ", e$message)
+  }))
+
+  # Get the number of bands in the raster
+  num_bands <- terra::nlyr(r)
+
+  # Suppress warnings from plotting functions
   suppressWarnings({
-    # List available image files in the package
-    ls <- list.files(system.file("images", package="imageRy"))
-
-    # Find the matching file
-    fname <- ls[grep(im, ls)]
-    fpath <- system.file("images", fname, package="imageRy")
-
-    # Load the raster image
-    r <- rast(fpath)
-
-    # Check if the raster has an extent
-    if (is.na(ext(r))) {
-      warning("The imported raster has an unknown extent: ", im)
+    if (num_bands == 1) {
+      plot(r, main = paste("Single-band image:", im))
+    } else if (num_bands >= 3) {
+      tryCatch({
+        terra::plotRGB(r, r = 1, g = 2, b = 3, stretch = "lin", main = paste("Multi-band image:", im))
+      }, error = function(e) {
+        message("RGB plotting failed for: ", im, " - ", e$message)
+        plot(r, main = paste("Displaying first band of:", im))
+      })
+    } else if (num_bands == 2) {
+      # Plot each band separately if there are exactly 2 bands
+      old_par <- par(mfrow = c(1, num_bands))
+      on.exit(par(old_par))
+      for (i in 1:num_bands) {
+        plot(r[[i]], main = paste("Band", i, "of", im))
+      }
     }
-
-    # Plot the raster
-    plot(r)  
-    return(r)
   })
+
+  return(r)
 }
