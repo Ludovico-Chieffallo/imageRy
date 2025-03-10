@@ -68,7 +68,11 @@ im.classify <- function(input_image, num_clusters = 3, seed = NULL, do_plot = TR
   
   # Convert raster to matrix and remove NA values
   image_values <- na.omit(terra::as.matrix(input_image))
-  
+
+  # Normalize values between 0 and 1 (to handle different bit depths)
+  image_values <- scale(image_values)  # Standardization (mean=0, sd=1)
+  image_values <- (image_values - min(image_values)) / (max(image_values) - min(image_values)) # Min-Max Scaling
+
   # Set seed for reproducibility
   if (!is.null(seed)) {
     set.seed(seed)
@@ -78,7 +82,7 @@ im.classify <- function(input_image, num_clusters = 3, seed = NULL, do_plot = TR
   kmeans_result <- kmeans(image_values, centers = num_clusters)
   
   # Create classified raster
-  classified_image <- input_image[[1]]
+  classified_image <- input_image[[1]]  # Use first band as base
   values(classified_image) <- kmeans_result$cluster
   
   # Visualize classified raster if requested
