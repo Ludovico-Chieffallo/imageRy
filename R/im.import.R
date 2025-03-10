@@ -57,36 +57,34 @@ im.import <- function(im) {
   # Construct the full file path
   fpath <- file.path(image_dir, fname)
 
-  # Load the raster image with suppressed warnings
-  r <- suppressWarnings(tryCatch({
+  # Load the raster image
+  r <- tryCatch({
     terra::rast(fpath)
   }, error = function(e) {
     stop("Failed to load raster: ", im, " - Error: ", e$message)
-  }))
+  })
 
   # Get the number of bands in the raster
   num_bands <- terra::nlyr(r)
 
-  # Suppress warnings from plotting functions
-  suppressWarnings({
-    if (num_bands == 1) {
-      plot(r, main = paste("Single-band image:", im))
-    } else if (num_bands >= 3) {
-      tryCatch({
-        terra::plotRGB(r, r = 1, g = 2, b = 3, stretch = "lin", main = paste("Multi-band image:", im))
-      }, error = function(e) {
-        message("RGB plotting failed for: ", im, " - ", e$message)
-        plot(r, main = paste("Displaying first band of:", im))
-      })
-    } else if (num_bands == 2) {
-      # Plot each band separately if there are exactly 2 bands
-      old_par <- par(mfrow = c(1, num_bands))
-      on.exit(par(old_par))
-      for (i in 1:num_bands) {
-        plot(r[[i]], main = paste("Band", i, "of", im))
-      }
+  # Display the raster according to the number of bands
+  if (num_bands == 1) {
+    plot(r, main = paste("Single-band image:", im))
+  } else if (num_bands >= 3) {
+    tryCatch({
+      terra::plotRGB(r, r = 1, g = 2, b = 3, stretch = "lin", main = paste("Multi-band image:", im))
+    }, error = function(e) {
+      message("RGB plotting failed for: ", im, " - ", e$message)
+      plot(r, main = paste("Displaying first band of:", im))
+    })
+  } else if (num_bands == 2) {
+    # Plot each band separately if there are exactly 2 bands
+    old_par <- par(mfrow = c(1, num_bands))
+    on.exit(par(old_par))
+    for (i in 1:num_bands) {
+      plot(r[[i]], main = paste("Band", i, "of", im))
     }
-  })
+  }
 
   return(r)
 }
