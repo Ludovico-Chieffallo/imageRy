@@ -48,10 +48,10 @@ im.export <- function(x, filename, overwrite = TRUE) {
   
   # Handle GeoTIFF export
   if (ext == "tif") {
-    writeRaster(x, filename, format = "GTiff", overwrite = overwrite)
+    writeRaster(x, filename, overwrite = overwrite, wopt = list(datatype = "FLT4S"))
     message("Raster successfully exported as GeoTIFF: ", filename)
-  
-  # Handle PNG/JPG export (convert to image)
+    
+    # Handle PNG/JPG export (convert to image)
   } else if (ext %in% c("png", "jpg", "jpeg")) {
     
     # Convert raster to a matrix for image export
